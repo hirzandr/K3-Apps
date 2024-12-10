@@ -67,7 +67,7 @@ resource "aws_security_group" "k3-asg-sg" {
 # - - - K3 CLUSTER LAUNCH TEMPLATE - - - #
 resource "aws_launch_template" "k3-cluster-temp-iac" {
   name_prefix            = "k3-cluster-temp-iac-"
-  image_id               = "ami-0bc7eb7e0e53e4365"
+  image_id               = "ami-0705f1545b15b4458" #Owned AMI K3 from ProdHis TAPI BUKAN GRAVITON
   instance_type          = "m5.large"
   key_name = "Prod-K3-keypairs"
   vpc_security_group_ids = [aws_security_group.k3-asg-sg.id]
@@ -81,7 +81,7 @@ resource "aws_launch_template" "k3-cluster-temp-iac" {
       volume_type = "gp3"
 
       encrypted = true
-      kms_key_id = "arn:aws:kms:ap-southeast-3:387413415276:key/7b09bd59-8a20-4de4-8008-84a351688670"
+      kms_key_id = "arn:aws:kms:ap-southeast-3:235494785181:key/a9f19238-c5ef-4065-9051-5bcb7511a4bc"
     }
   }
 
@@ -104,17 +104,17 @@ resource "aws_launch_template" "k3-cluster-temp-iac" {
   tag_specifications {
     resource_type = "volume"
     tags          = {
-        "AppOwner"     = "Kairos"
-        "DepartmentID" = "Kairos"
+        "AppOwner"     = "K3"
+        "DepartmentID" = "K3"
         "Environment"  = "prod"
-        "Owner"        = "Kairos"
-        "OwnerTeam"    = "Kairos"
+        "Owner"        = "K3"
+        "OwnerTeam"    = "K3"
         "map-migrated" = "migXE6ORY1HAF"
         "name"         = "k3-cluster-asg-iac"
     }
   }
 
-  iam_instance_profile { arn = "arn:aws:iam::387413415276:instance-profile/ECSInstanceRole" }
+  iam_instance_profile { arn = "arn:aws:iam::235494785181:instance-profile/ECSInstanceRole" }
   monitoring { enabled = true }
 
 user_data = base64encode(<<-EOF
@@ -205,7 +205,7 @@ resource "aws_launch_template" "k3-cluster-arm-iac" {
   name_prefix            = "k3-cluster-arm-iac"
   image_id               = "ami-0a02316a96c5435f5" # Belum ada AMI
   instance_type          = "m6g.large"
-  key_name = "kairos-prod-key"
+  key_name = "Prod-K3-keypairs"
   vpc_security_group_ids = [aws_security_group.k3-asg-sg.id]
   block_device_mappings {
     device_name = "/dev/xvda"
@@ -217,7 +217,7 @@ resource "aws_launch_template" "k3-cluster-arm-iac" {
       volume_type = "gp3"
 
       encrypted = true
-      kms_key_id = "arn:aws:kms:ap-southeast-3:387413415276:key/7b09bd59-8a20-4de4-8008-84a351688670" #KMS EBS
+      kms_key_id = "arn:aws:kms:ap-southeast-3:235494785181:key/a9f19238-c5ef-4065-9051-5bcb7511a4bc" #KMS EBS
     }
   }
 
@@ -240,17 +240,17 @@ resource "aws_launch_template" "k3-cluster-arm-iac" {
   tag_specifications {
     resource_type = "volume"
     tags          = {
-        "AppOwner"     = "Kairos"
-        "DepartmentID" = "Kairos"
+        "AppOwner"     = "K3"
+        "DepartmentID" = "K3"
         "Environment"  = "prod"
-        "Owner"        = "Kairos"
-        "OwnerTeam"    = "Kairos"
+        "Owner"        = "K3"
+        "OwnerTeam"    = "K3"
         "map-migrated" = "migXE6ORY1HAF"
         "name"         = "k3-cluster-asg-arm-iac"
     }
   }
 
-  iam_instance_profile { arn = "arn:aws:iam::387413415276:instance-profile/ECSInstanceRole" }
+  iam_instance_profile { arn = "arn:aws:iam::235494785181:instance-profile/ECSInstanceRole" }
   monitoring { enabled = true }
 
 user_data = base64encode(<<-EOF
@@ -340,10 +340,10 @@ EOF
 # --- CLUSTER prod ASG ---
 resource "aws_autoscaling_group" "k3-cluster-asg-iac" {
   name                      = "k3-cluster-asg-iac"
-  vpc_zone_identifier       = ["subnet-092c7acfd0ca847a1", "subnet-065675c9892dc6068", "subnet-0a4c5be8c1c9f6c77"]
-  desired_capacity          = 20
-  min_size                  = 0
-  max_size                  = 40
+  vpc_zone_identifier       = ["subnet-0d8f73b36c979812f", "subnet-08f5684f0d529384b"]
+  #desired_capacity          = 20
+  min_size                  = 1
+  max_size                  = 2
   health_check_grace_period = 300
   health_check_type         = "EC2"
   protect_from_scale_in     = false
@@ -371,13 +371,13 @@ resource "aws_autoscaling_group" "k3-cluster-asg-iac" {
 
   tag {
     key                 = "AppOwner"
-    value               = "Kairos"
+    value               = "K3"
     propagate_at_launch = true
   }
 
   tag {
     key                 = "OwnerTeam"
-    value               = "Kairos"
+    value               = "K3"
     propagate_at_launch = true
   }
 
@@ -399,66 +399,6 @@ resource "aws_autoscaling_group" "k3-cluster-asg-iac" {
     propagate_at_launch = true
   }
 }
-
-# --- CLUSTER DEV ASG ARM ---
-resource "aws_autoscaling_group" "k3-cluster-arm-asg-iac" {
-  name                      = "k3-cluster-arm-asg-iac"
-  vpc_zone_identifier       = var.private_subnet_ids
-  desired_capacity          = 1
-  min_size                  = 0
-  max_size                  = 40
-  health_check_grace_period = 300
-  health_check_type         = "EC2"
-  protect_from_scale_in     = false
-
-  launch_template {
-    id      = aws_launch_template.k3-cluster-arm-iac.id
-    version = "$Latest"
-  }
-
-  tag {
-    key                 = "Name"
-    value               = "k3-cluster-asg-arm-iac"
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "AmazonECSManaged"
-    value               = ""
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "AppOwner"
-    value               = "Kairos"
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "OwnerTeam"
-    value               = "Kairos"
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "code-app"
-    value               = "k3"
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "map-migrated"
-    value               = "migXE6ORY1HAF"
-    propagate_at_launch = true
-  }
-  
-  tag {
-    key                 = "Asg-Auto-Infra-k3-cluster-arm-asg-iac"
-    value               = "True"
-    propagate_at_launch = true
-  }
-}
-
 
 resource "aws_autoscaling_policy" "cluster-pas-cpu-policy-up" {
   name                   = "cluster-pas-cpu-policy-up"
