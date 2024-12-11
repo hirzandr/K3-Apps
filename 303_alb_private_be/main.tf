@@ -1,63 +1,31 @@
 locals {
-  certificate_arn = "arn:aws:acm:ap-southeast-3:387413415276:certificate/0375aa5c-03e0-4ef5-8490-834ec85586b0"
-  vpc_id            =  "vpc-079fbf10a5eb9468f"
-  subnet_ids        = ["subnet-092c7acfd0ca847a1", "subnet-065675c9892dc6068", "subnet-0a4c5be8c1c9f6c77"]
-  bucket_name       = "log-kairos-fe-lb-alb-internal-iac"
-  bucket_name_conn  = "log-conn-kairos-fe-lb-alb-internal-iac"
-  aws_account_id    = "387413415276"
+  certificate_arn = "arn:aws:acm:ap-southeast-3:235494785181:certificate/81675b4a-ac07-461d-8122-f3984766b484"
+  vpc_id            =  "vpc-0c6e322ba7308224f"
+  subnet_ids        = ["subnet-0d8f73b36c979812f", "subnet-08f5684f0d529384b"]
+  bucket_name       = "log-k3-be-lb-alb-internal-iac"
+  bucket_name_conn  = "log-conn-k3-be-lb-alb-internal-iac"
+  aws_account_id    = "235494785181"
 }
 
-resource "aws_security_group" "alb_sg_preprod" {
-  name    = "kairos-fe-lb-alb-internal-sg-iac"
-  description = "Load Balancer security group for Cluster Kairos FE"
-  vpc_id  =  "vpc-079fbf10a5eb9468f"
+resource "aws_security_group" "alb_sg_prod" {
+  name    = "k3-be-lb-alb-internal-sg-iac"
+  description = "Load Balancer security group for Cluster k3 BE"
+  vpc_id  =  "vpc-0c6e322ba7308224f"
 
   ingress {
-      description     = "Allow All Traffic from Private & Protected"
+      description     = "Allow All Traffic from Private & Protected A"
       from_port       = 0
       to_port         = 0
       protocol        = "-1"
-      cidr_blocks     = ["10.100.210.0/24"]
+      cidr_blocks     = ["10.100.70.0/26", "10.100.70.160/27"]
     }
 
     ingress {
-      description     = "Allow All Traffic from Private & Protected"
+      description     = "Allow All Traffic from Private & Protected B"
       from_port       = 0
       to_port         = 0
       protocol        = "-1"
-      cidr_blocks     = ["10.100.211.128/26"]
-    }
-
-    ingress {
-      description     = "Allow All Traffic from Private & Protected"
-      from_port       = 0
-      to_port         = 0
-      protocol        = "-1"
-      cidr_blocks     = ["10.100.211.64/26"]
-    }
-
-    ingress {
-      description     = "Allow All Traffic from Private & Protected"
-      from_port       = 0
-      to_port         = 0
-      protocol        = "-1"
-      cidr_blocks     = ["10.100.209.0/24"]
-    }
-
-    ingress {
-      description     = "Allow All Traffic from Private & Protected"
-      from_port       = 0
-      to_port         = 0
-      protocol        = "-1"
-      cidr_blocks     = ["10.100.211.0/26"]
-    }
-
-    ingress {
-      description     = "Allow All Traffic from Private & Protected"
-      from_port       = 0
-      to_port         = 0
-      protocol        = "-1"
-      cidr_blocks     = ["10.100.208.0/24"]
+      cidr_blocks     = ["10.100.70.64/26", "10.100.70.192/27"]
     }
 
     ingress {
@@ -69,11 +37,11 @@ resource "aws_security_group" "alb_sg_preprod" {
     }
 
     ingress {
-      description     = "Allow All Traffic from MySiloam Preprod"
+      description     = "Allow All Traffic from K3 Prod"
       from_port       = 0
       to_port         = 0
       protocol        = "-1"
-      cidr_blocks     = ["10.100.196.0/22"]
+      cidr_blocks     = ["10.100.70.0/24"]
     }
 
     ingress {
@@ -127,7 +95,7 @@ ingress {
 
 #### S3 alb ACCESS LOG #####
 ####################################
-module "s3_bucket-log-kairos-fe-lb-nlb-internal-iac" {
+module "s3_bucket-log-k3-be-lb-nlb-internal-iac" {
   source = "./../modules/s3_bucket/v1"
 
   bucket_name = local.bucket_name
@@ -169,7 +137,7 @@ module "s3_bucket-log-kairos-fe-lb-nlb-internal-iac" {
 
 #### S3 alb COnnection LOG #####
 ####################################
-module "s3_bucket-log-conn-kairos-fe-lb-nlb-internal-iac" {
+module "s3_bucket-log-conn-k3-be-lb-nlb-internal-iac" {
   source = "./../modules/s3_bucket/v1"
 
   bucket_name = local.bucket_name_conn
@@ -214,11 +182,11 @@ module "s3_bucket-log-conn-kairos-fe-lb-nlb-internal-iac" {
 module "alb_private" {
   source = "./../modules/alb/v2"
 
-  name = "kairos-fe-lb-alb-internal-iac"
+  name = "k3-be-lb-alb-internal-iac"
 
   load_balancer_type = "application"
 
-  security_groups = [aws_security_group.alb_sg_preprod.id]
+  security_groups = [aws_security_group.alb_sg_prod.id]
 
   subnets = local.subnet_ids
 
@@ -260,15 +228,15 @@ module "alb_private" {
   ]
 
   target_groups = [
-    {#0
-      name             = "dummy-tg"
+    {
+      name             = "dummy-tg" #0
       backend_port     = 80
       backend_protocol = "http"
       protocol_version = "HTTP1"
       target_type      = "instance"
     },
-    {#1 
-      name             = "pas-kairos-fe-main-web-tg-iac"
+    {
+      name             = "k3-be-main-web-tg-iac" #1 
       backend_port     = 9901
       backend_protocol = "HTTP"
       target_type      = "ip"
@@ -280,8 +248,8 @@ module "alb_private" {
         protocol = "HTTP"
       }
     },
-    {#2 
-      name             = "pay-kairos-ui-tg-iac"
+    {
+      name             = "k3-worker-tg-iac" #2 
       backend_port     = 9902
       backend_protocol = "HTTP"
       target_type      = "ip"
@@ -293,8 +261,8 @@ module "alb_private" {
         protocol = "HTTP"
       }
     },
-    {#3 
-      name             = "apm-tg-iac"
+    {
+      name             = "k3-apm-tg-iac" #3 
       backend_port     = 80
       backend_protocol = "HTTP"
       target_type      = "ip"
@@ -313,8 +281,8 @@ module "alb_private" {
         }
       }
     },
-      {#4 
-      name             = "kairos-web-ui-tg-iac"
+      {
+      name             = "k3-web-ui-tg-iac" #4 
       backend_port     = 7700
       backend_protocol = "HTTP"
       target_type      = "ip"
@@ -364,7 +332,7 @@ module "alb_private" {
       }]
 
       conditions = [{
-        host_headers = ["preprd-pas-kairos.siloamhospitals.com"]
+        host_headers = ["prod-k3.siloamhospitals.com"] #01
         },
       ]
     },
@@ -381,7 +349,7 @@ module "alb_private" {
       }]
 
       conditions = [{
-        host_headers = ["preprd-pay-kairos.siloamhospitals.com"]
+        host_headers = ["prod-worker.siloamhospitals.com"] #2
         },
       ]
     },
@@ -398,27 +366,10 @@ module "alb_private" {
       }]
 
       conditions = [{
-        host_headers = ["preprd-apm-kairos.siloamhospitals.com"]
+        host_headers = ["prod-apm-k3.siloamhospitals.com"] #3
         },
       ]
     },
-#    {
-#      https_listener_index = 0
-#      priority             = 94
-#
-#      actions = [{
-#        type               = "forward"
-#        target_group_index = 2
-#        stickiness = {
-#          enabled = false
-#        }
-#      }]
-#
-#      conditions = [{
-#        host_headers = ["preprd-pay-kairos.siloamhospitals.com"]
-#        },
-#      ]
-#    },
     {
       https_listener_index = 0
       priority             = 92
@@ -432,9 +383,9 @@ module "alb_private" {
       }]
 
       conditions = [{
-        host_headers = ["preprd-kairos.siloamhospitals.com"]
+        host_headers = ["prod-k3-web-ui.siloamhospitals.com"] #4
         },
         ]
-      },
+      }
   ]
 }

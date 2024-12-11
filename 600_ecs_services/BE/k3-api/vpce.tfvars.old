@@ -1,0 +1,4 @@
+region = "ap-southeast-3"
+environment = "uat"
+private_subnet_ids = ["subnet-0743a1dc9e86b8ac6","subnet-0793996cfd750257b"]
+vpc_id = "vpc-0fca124117ddac9aa"

@@ -1,0 +1,70 @@
+/*---------------------------------------------------------------------------------------
+© 2022 Amazon Web Services, Inc. or its affiliates. All Rights Reserved.
+ 
+This AWS Content is provided subject to the terms of the AWS Customer Agreement
+available at http://aws.amazon.com/agreement or other written agreement between
+Customer and either Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
+---------------------------------------------------------------------------------------*/
+
+#currently Terraform has not support ap-southeast-3
+# Issue: https://github.com/hashicorp/terraform-provider-aws/issues/22252
+
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+
+      version = ">= 3.5.0, != 3.14.0, >= 5.36.0"
+    }
+    # template = {
+    #   source = "hashicorp/template"
+    # }
+    # time = {
+    #   source = "hashicorp/time"
+    # }
+  }
+
+  backend "s3" {
+    # Replace this with your bucket name!
+    bucket                 = "siloam-uat-corpapp-terraform-state" #"<Your Bucket Name>"
+    key                    = "terraform-states/siloam-uat-corpapp-terraform-state/siblink/600_ecs_services/FE/terraform.tfstate"
+    region                 = "ap-southeast-3" #"<Your Region>"
+    skip_region_validation = true
+
+    # Replace this with your DynamoDB table name!
+    dynamodb_table = "siloam-uat-corpapp-terraform-state" #"<Your Dynamo DB>"
+    encrypt        = true
+  }
+
+  required_version = ">= 1.0"
+}
+
+
+# Configure the AWS Provider
+provider "aws" {
+  region                 = var.region #"<Your Region>"
+
+  skip_region_validation = true
+  default_tags {
+    # tags = var.tags
+    tags = {
+      Managed_Via        = "TerraformManaged"
+      Environment        = "uat"
+      OwnerTeam          = "siblink"
+      DepartmentID       = "corp-app"
+      DataClassification = "clinical"
+      ManagedVia         = "Terraform"
+      ProvisionedBy      = "Hirzan-SSE"
+      Purpose            = "app-container"
+    }
+  }
+}
+
+
+data "aws_caller_identity" "current" {}
+
+locals {
+  # Account id
+  account_id = data.aws_caller_identity.current.account_id
+
+}
