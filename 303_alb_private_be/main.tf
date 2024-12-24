@@ -275,9 +275,9 @@ module "alb_private" {
       }
       targets = {
         apm = {
-          target_id         = "10.100.3.7"
+          target_id         = "10.100.70.109"
           port              = 80
-          availability_zone = "all"
+          availability_zone = "ap-southeast-3b"
         }
       }
     },
