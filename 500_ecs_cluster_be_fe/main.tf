@@ -93,10 +93,6 @@ resource "aws_launch_template" "k3-cluster-arm-asg-iac" {
     }
   }
 
-  instance_market_options {
-    market_type = "spot"
-  }
-
   metadata_options {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
