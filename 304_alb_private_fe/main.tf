@@ -237,7 +237,7 @@ module "alb_private" {
         }
       }]
       conditions = [{
-        host_headers = ["prod-k3-api-integration.siloamhospitals.com"]
+        host_headers = ["hsse.siloamhospitals.com"]
         },
       ]
     }
