@@ -238,14 +238,14 @@ module "alb_private" {
     {
       name             = "k3-be-main-web-tg-iac" #1 
       backend_port     = 3000
-      backend_protocol = "HTTPS"
+      backend_protocol = "HTTP"
       target_type      = "ip"
       health_check = {
         enabled  = true
         interval = "30"
         path     = "/"
         matcher  = "200"
-        protocol = "HTTPS"
+        protocol = "HTTP"
       }
     },
     {
