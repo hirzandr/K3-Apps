@@ -187,15 +187,15 @@ module "alb_private" {
     },
     {
       name             = "k3-fe-main-web-tg-iac" #1 
-      backend_port     = 9901
-      backend_protocol = "HTTP"
+      backend_port     = 3000
+      backend_protocol = "HTTPS"
       target_type      = "ip"
       health_check = {
         enabled  = true
         interval = "30"
         path     = "/"
         matcher  = "200"
-        protocol = "HTTP"
+        protocol = "HTTPS"
       }
     },
   ]
