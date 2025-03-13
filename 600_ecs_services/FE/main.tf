@@ -1,7 +1,7 @@
 locals {
   name              = "prod-k3-fe-iac"
   cluster_name      = "k3-cluster-ecs-iac"
-  target_group_arn  = "arn:aws:elasticloadbalancing:ap-southeast-3:235494785181:targetgroup/k3-fe-main-web-tg-iac/3a71442dfa40d327"
+  target_group_arn  = "arn:aws:elasticloadbalancing:ap-southeast-3:235494785181:targetgroup/k3-fe-main-web-tg-iac/9f6a863ac92b6181"
   container_port    = 80
   cpu               = "256"
   memory            = "512"
