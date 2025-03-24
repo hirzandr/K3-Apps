@@ -1,8 +1,8 @@
 locals {
   name              = "prod-k3-api-iac"
   cluster_name      = "k3-cluster-ecs-iac"
-  target_group_arn  = "arn:aws:elasticloadbalancing:ap-southeast-3:235494785181:targetgroup/k3-web-ui-tg-iac/7107265ba8013d10"
-  container_port    = 5000 #harusnya ini ga bisa ke ALB
+  target_group_arn  = "arn:aws:elasticloadbalancing:ap-southeast-3:235494785181:targetgroup/k3-be-main-web-tg-iac/a9e9755b9cf05a5f"
+  container_port    = 5000
   cpu               = "256"
   memory            = "512"
   container_desired_count = 1
